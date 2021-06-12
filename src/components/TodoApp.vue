@@ -16,7 +16,10 @@
 
     <div class=" center">
       <br />
-      <button class="btn btn-success b1 pointer" @click="submitTask">ADD</button>
+      <button class="btn btn-success b1 pointer" @click="submitTask">
+        <span v-if="editedTask == null">Add</span>
+        <span v-if="editedTask != null">Update</span>
+        </button>
       <button class="btn btn-primary b1 pointer" @click="cleatTask">Clear</button>
       <button v-if="deletedTask.length > 0" class="btn btn-danger b1 pointer" @click="deletedTaskModal = true">Deleted Task(s)</button>
     </div>
@@ -56,8 +59,8 @@
               <span class="fa fa-trash pointer"></span>
             </div>
           </td>
-          <td class="text-center" v-if="editedTask != index">
-            <div @click="editTask(index)">
+          <td class="text-center">
+            <div v-if="editedTask != index" @click="editTask(index)">
               <p class="fa fa-pen pointer"></p>
             </div>
           </td>
