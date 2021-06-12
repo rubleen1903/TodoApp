@@ -1,24 +1,28 @@
 <template>
-  <div class ="container" style ="max-width:800px">
+  <div class="container" style="max-width:800px">
     <!--headings -->
 
-   <h3 class="text-center">To Do App using VueJs</h3>
+    <h3 class="text-center">To Do App using VueJs</h3>
 
-   <!--Form-->
-   <div class="d-flex mt-5 ">
+    <!--Form-->
+    <div class="d-flex mt-5 ">
       <input
         type="text"
         v-model="task"
         placeholder="Enter new task in the list"
         class="w-100 form-control"
       />
-      <button class="btn btn-danger b1 pointer" @click="submitTask">
-        ADD
-      </button>
     </div>
 
-     <!-- Task table -->
-    <table class="table table-bordered mt-5 bg ">
+    <div class=" center">
+      <br />
+      <button class="btn btn-success b1 pointer" @click="submitTask">ADD</button>
+      <button class="btn btn-primary b1 pointer" @click="cleatTask">Clear</button>
+      <button v-if="deletedTask.length > 0" class="btn btn-danger b1 pointer" @click="deletedTaskModal = true">Deleted Task(s)</button>
+    </div>
+
+    <!-- Task table -->
+    <table class="table table-bordered mt-3 bg ">
       <thead>
         <tr>
           <th scope="col">Task</th>
@@ -48,11 +52,11 @@
             </span>
           </td>
           <td class="text-center">
-            <div @click="deleteTask(index)">
+            <div v-if="editedTask != index" @click="deleteTask(index)">
               <span class="fa fa-trash pointer"></span>
             </div>
           </td>
-          <td class="text-center">
+          <td class="text-center" v-if="editedTask != index">
             <div @click="editTask(index)">
               <p class="fa fa-pen pointer"></p>
             </div>
@@ -61,18 +65,50 @@
       </tbody>
     </table>
 
-   
+      <div v-if="deletedTaskModal">
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h4 class="modal-title" >Deleted Task(s)</h4>
+                    <button type="button" class="close" aria-hidden="true" @click="deletedTaskModal=false">&times;</button>
+                  </div>
+                  <div class="modal-body">
+                    <table>
+                      <tr v-for="(task, index) in deletedTask" :key="index">
+                        <td style="width: 300px;">{{task.name}}</td>
+                        <td style="width: 100px;">
+                          <span :class="{
+                                        'text-danger': task.status === 'to-do',
+                                        'text-success': task.status === 'finished',
+                                        'text-warning': task.status === 'in-progress',
+                                      }">
+                                      {{ capitalizeFirstChar(task.status) }}
+                            </span>
+                        </td>
+                        <td><button style="width: 60px" class="btn btn-primary" @click="undoTask(index)">undo</button></td>
+                      </tr>
+                    </table>                
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
+  name: "HelloWorld",
   props: {
-    msg: String
+    msg: String,
   },
 
-   data() {
+  data() {
     return {
       task: "",
       editedTask: null,
@@ -92,9 +128,11 @@ export default {
           status: "finished",
         },
       ],
+      deletedTask: [],
+      deletedTaskModal:false
     };
   },
-  methods: {
+  methods: {    
     /**
      * Capitalize first character
      */
@@ -113,6 +151,8 @@ export default {
      * Deletes task by index
      */
     deleteTask(index) {
+      let deletedTask = this.tasks[index];
+      this.deletedTask.push(deletedTask);
       this.tasks.splice(index, 1);
     },
     /**
@@ -135,11 +175,23 @@ export default {
         /* We need to add new task */
         this.tasks.push({
           name: this.task,
-          status: "todo",
+          status: "to-do",
         });
       }
       this.task = "";
     },
+    // undo Deleted Task
+    undoTask(index){
+      this.tasks.push(this.deletedTask[index]);
+      this.deletedTask.splice(index, 1);
+      if(this.deletedTask.length <= 0)
+        this.deletedTaskModal = false;
+    },
+    // cleatTask
+    cleatTask(){
+      this.task="";
+      this.editedTask=null;
+    }
   },
 };
 </script>
@@ -166,9 +218,25 @@ a {
 .line-through {
   text-decoration: line-through;
 }
-.b1{
-  padding:3%;
-  float:right;
-  margin:2%;
+.b1 {
+  padding: 10px;
+  /* float: right; */
+  margin: 5px;
 }
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, .5);
+  display: table;
+  transition: opacity 0.5s ease;
+}
+.modal-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+}
+
 </style>
